@@ -8,7 +8,7 @@ import java.util.Comparator;
  */
 @SuppressWarnings("unchecked")
 public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
-    private static final int DEFAULT_SIZE = 15;
+    private static final int DEFAULT_SIZE = 8;
     private final Comparator<? super T> comparator;
     private Object[] array;
     private int size;
