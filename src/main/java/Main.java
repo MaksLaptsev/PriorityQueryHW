@@ -1,7 +1,6 @@
 import Queue.CustomPriorityQuery;
 import Queue.CustomPriorityQueryImp;
 import model.Person;
-
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
