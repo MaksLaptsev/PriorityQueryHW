@@ -1,4 +1,4 @@
-package Queue;
+package queue;
 
 public interface CustomPriorityQuery<T> {
     boolean add(T t);

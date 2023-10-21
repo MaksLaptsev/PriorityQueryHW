@@ -1,4 +1,4 @@
-package Queue;
+package queue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
