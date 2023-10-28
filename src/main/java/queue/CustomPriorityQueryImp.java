@@ -10,7 +10,7 @@ import java.util.Comparator;
 public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
     private static final int DEFAULT_SIZE = 8;
     private final Comparator<? super T> comparator;
-    private Object[] array;
+    private T[] array;
     private int size;
 
 
@@ -39,7 +39,7 @@ public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
         if(initialCapacity < 1){
             throw new IllegalArgumentException("Capacity can not be < 1!!");
         }
-        this.array = new Object[initialCapacity];
+        this.array = (T[])new Object[initialCapacity];
         this.size = 0;
     }
 
@@ -68,16 +68,17 @@ public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
      */
     @Override
     public T poll() {
-        final T object = (T)array[0];
+        final T object = array[0];
         if(object != null){
             final int lastObjectId = --size;
-            final T lastObject = (T)array[lastObjectId];
+            final T lastObject = array[lastObjectId];
             array[lastObjectId] = null;
             if(lastObjectId > 0){
-                if(comparator != null){
-                    siftDownWithComparator(0,lastObject,array,lastObjectId,comparator);
+                if(comparator == null){
+                    Comparator<? super T> fromComparable = tryToGetComparator(lastObject);
+                    siftDownWithComparator(0,lastObject,lastObjectId,fromComparable);
                 }else {
-                    siftDownWithComparable(0,lastObject,array,lastObjectId);
+                    siftDownWithComparator(0,lastObject,lastObjectId,comparator);
                 }
             }
         }
@@ -90,7 +91,7 @@ public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
      */
     @Override
     public T peek() {
-        return (T) array[0];
+        return array[0];
     }
 
     /**
@@ -164,110 +165,77 @@ public class CustomPriorityQueryImp<T> implements CustomPriorityQuery<T>{
      * @param t - добавляемый элемент
      */
     private void siftUp(int i, T t){
-        if(comparator != null){
-            siftUpWithComparator(i,t, array, comparator);
+        if(comparator == null){
+            Comparator<? super T> fromComparable = tryToGetComparator(t);
+            siftUpWithComparator(i,t,fromComparable);
         }else {
-            siftUpWithComparable(i, t, array);
+            siftUpWithComparator(i,t,comparator);
         }
+
     }
 
     /**
      * Процесс поиска места в массиве для нового элемента, при добавлении
      * @param i - начальный индекс элемента в массиве
      * @param t - сам элемент
-     * @param arr - массив с элементами из коллекции
      * @param comparator - необходимая нам реализация компаратора для сравнения обьектов(задается в конструкторе)
      *                      {@link CustomPriorityQueryImp#CustomPriorityQueryImp(Comparator)}  CustomPriorityQueryImp}
      */
-    private void siftUpWithComparator(int i, T t,Object[] arr, Comparator<? super T> comparator){
+    private void siftUpWithComparator(int i, T t, Comparator<? super T> comparator){
         while(i > 0){
             //Ищем индекс родительского объекта
             int parentObjectId = (i-2+1)/2;
             //Берем сам объект
-            Object parent =  arr[parentObjectId];
+            T parent = array[parentObjectId];
             //Сравниваем объекты между собой
-            if(comparator.compare(t,(T)parent) >= 0){
+            if(comparator.compare(t, parent) >= 0){
                 break;
             }
-            arr[i] = parent;
+            array[i] = parent;
             i = parentObjectId;
         }
-        arr[i] = t;
-    }
-
-    /**
-     *{@link #siftUpWithComparable(int, Object, Object[])}
-     */
-    private void siftUpWithComparable(int i, T t,Object[] arr){
-        Comparable<? super T> item = (Comparable<? super T>)t;
-        while(i > 0){
-            int parentObjectId = (i-2+1)/2;
-            Object parent =  arr[parentObjectId];
-            if(item.compareTo((T) parent) >= 0){
-                break;
-            }
-            arr[i] = parent;
-            i = parentObjectId;
-        }
-        arr[i] = t;
+        array[i] = t;
     }
 
     /**
      * Процесс поиска места в массиве для элемента, после удаления предыдущего
      * @param i - индекс, с которого начинается поиск
      * @param t - объект
-     * @param arr - массив с элементами из коллекции
      * @param lastId - индекс последнего объекта в коллекции
      * @param comparator - необходимая нам реализация компаратора для сравнения обьектов(задается в конструкторе)
      *                     {@link CustomPriorityQueryImp#CustomPriorityQueryImp(Comparator)}  CustomPriorityQueryImp
      */
-    private void siftDownWithComparator(int i, T t, Object[] arr, int lastId,Comparator<? super T> comparator){
+    private void siftDownWithComparator(int i, T t, int lastId,Comparator<? super T> comparator){
         int half = lastId/2;
         while (i < half){
             //индекс левого потомка от верхушки
             int leftChildId = i*2+1;
             //индекс правого потомка от верхушки
             int rightChildId = leftChildId+1;
-            T child = (T) arr[leftChildId];
             //Сравниваем левого и правого потомка, при удовлетворении проверки - берем правого потомка за основу
             if(rightChildId < lastId &&
-                    comparator.compare(child,(T) arr[rightChildId]) > 0){
+                    comparator.compare(array[leftChildId], array[rightChildId]) > 0){
                 leftChildId = rightChildId;
-                child = (T)arr[leftChildId];
             }
             //в случае удовлетворения условия - новое место для нашего объекта найдено, цикл прерывается
-            if(comparator.compare(t,child) <= 0){
+            if(comparator.compare(t,array[leftChildId]) <= 0){
                 break;
             }
-            arr[i] = child;
+            array[i] = array[leftChildId];
             i = leftChildId;
         }
         //объект перемещен на новое место
-        arr[i] = t;
+        array[i] = t;
     }
 
-    /**
-     * {@link #siftDownWithComparator(int, Object, Object[], int, Comparator)}
-     */
-    private void siftDownWithComparable(int i, T t, Object[] arr, int lastId){
-        Comparable<? super T> item = (Comparable<? super T>)t;
-        int half = lastId/2;
-        while (i < half){
-            int leftChildId = i*2+1;
-            int rightChildId = leftChildId+1;
 
-            T child = (T) arr[leftChildId];
-            if(rightChildId < lastId &&
-                    ((Comparable<? super T>) child).compareTo((T)arr[rightChildId]) > 0){
-                leftChildId = rightChildId;
-                child = (T)arr[leftChildId];
+    private Comparator<? super T> tryToGetComparator(T t){
+            {
+                Comparable<? super T> item = (Comparable<? super T>)t;
             }
-            if(item.compareTo(child) <= 0){
-                break;
-            }
-            arr[i] = child;
-            i = leftChildId;
-        }
-        arr[i] = item;
+        return (i1,i2)->{
+            Comparable<? super T> item = (Comparable<? super T>)i1;
+            return item.compareTo(i2);
+        };
     }
 }

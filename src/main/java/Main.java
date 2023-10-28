@@ -46,9 +46,10 @@ public class Main {
         try{
             CustomPriorityQuery<Person> customWithoutComparator = new CustomPriorityQueryImp<>();
             System.out.println("Попытка добавить объект без реализации компаратора");
-            customWithoutComparator.add(Person.builder().id(1).name("A").salary(0.4).build());
         }catch (ClassCastException e){
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
+
+
     }
 }
